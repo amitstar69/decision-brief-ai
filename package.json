@@ -14,9 +14,9 @@
     "react-dom": "latest"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "tailwindcss": "8.4.47",
-    "postcss": "latest",
+    "typescript": "5.0.0",
+    "tailwindcss": "4.0.0",
+    "postcss": "8.4.47",
     "@tailwindcss/postcss": "^4.0.0",
     "autoprefixer": "10.4.20",
     "eslint": "latest",
