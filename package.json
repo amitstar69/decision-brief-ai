@@ -15,10 +15,10 @@
   },
   "devDependencies": {
     "typescript": "latest",
-    "tailwindcss": "latest",
+    "tailwindcss": "8.4.47",
     "postcss": "latest",
     "@tailwindcss/postcss": "^4.0.0",
-    "autoprefixer": "latest",
+    "autoprefixer": "10.4.20",
     "eslint": "latest",
     "@types/react": "latest",
     "@types/node": "latest",
