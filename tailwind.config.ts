@@ -1,14 +1,10 @@
-import { defineConfig } from 'tailwindcss';
+import { defineConfig } from "tailwindcss";
 
 export default defineConfig({
   presets: [],
   themes: {
     default: {
-      extend: {
-        colors: {
-          // Your custom colors here if needed
-        },
-      },
-    },
-  },
+      extend: {}
+    }
+  }
 });
