@@ -1,10 +1,15 @@
-import { defineConfig } from "tailwindcss";
+import type { Config } from "tailwindcss";
 
-export default defineConfig({
-  presets: [],
-  themes: {
-    default: {
-      extend: {}
-    }
-  }
-});
+const config: Config = {
+  content: [
+    "./src/app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/lib/**/*.{ts,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+export default config;
