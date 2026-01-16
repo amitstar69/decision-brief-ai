@@ -1,13 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+ @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
+  @layer base {
+    :root {
+      --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+    }
 
-/* Custom styles here */
-html, body {
-  margin: 0;
-  padding: 0;
-}
+    body {
+      @apply font-sans;
+    }
+  }
+
+  @layer utilities {
+    .text-balance {
+      text-wrap: balance;
+    }
+  }
