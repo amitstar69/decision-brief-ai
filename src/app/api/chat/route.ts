@@ -29,6 +29,11 @@ import { NextRequest, NextResponse } from 'next/server';
     return requiredHeadings.every((h) => text.toUpperCase().includes(h));
   }
 
+
+    // Check if all required sections are present
+    return requiredHeadings.every((h) => text.toUpperCase().includes(h));
+  }
+
   export async function POST(req: NextRequest) {
     try {
       if (!OPENROUTER_API_KEY) {
