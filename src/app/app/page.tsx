@@ -183,9 +183,9 @@
           <div className="w-full max-w-3xl border border-slate-800 rounded-xl p-5 bg-slate-900/80 shadow-xl">
             <div className="mb-4">
               <h1 className="text-2xl font-semibold text-slate-50">Generate Your Brief</h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Upload a document or paste any email, doc, or notes. Choose a lens. Generate a board-ready brief.
-              </p>
+             <p className="text-xs text-slate-500 mt-1">
+    Paste your meeting transcript, PRD, or strategy doc. Select a lens. Get a decision-ready brief.
+  </p>
             </div>
 
             {/* MAIN BRIEF FORM */}
@@ -252,12 +252,12 @@
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Or Paste Notes {uploadedFile && '(append to uploaded document)'}
-                </label>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+    Or Paste Meeting Transcript / Document {uploadedFile && '(append to uploaded document)'}
+  </label>
                 <textarea
                   className="w-full h-40 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm leading-relaxed resize-y text-slate-50"
-                  placeholder="Paste your meeting notes, email, or doc…"
+  placeholder="Paste your meeting transcript (Zoom, Meet, Teams), PRD, strategy memo, or Slack thread…"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   disabled={isLoading || isParsingFile}
