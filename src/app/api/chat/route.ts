@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+ import { NextRequest, NextResponse } from 'next/server';
   import { buildExecSystemPrompt, type ExecLens } from '@/lib/execPrompt';
 
   const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -8,8 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
     content: string;
   };
 
-   function isValidBrief(text: string): boolean {
-    // Updated to match decision-focused format
+  function isValidBrief(text: string): boolean {
     const requiredHeadings = [
       'DECISION BEING MADE',
       'OPTIONS CONSIDERED',
@@ -20,17 +19,6 @@ import { NextRequest, NextResponse } from 'next/server';
       'NEXT 3 ACTIONS',
     ];
 
-    // Check if all required sections are present
-    return requiredHeadings.every((h) => text.toUpperCase().includes(h));
-  }
-
-
-    // Check if all required sections are present
-    return requiredHeadings.every((h) => text.toUpperCase().includes(h));
-  }
-
-
-    // Check if all required sections are present
     return requiredHeadings.every((h) => text.toUpperCase().includes(h));
   }
 
@@ -73,7 +61,7 @@ import { NextRequest, NextResponse } from 'next/server';
           'X-Title': 'Decision Brief AI',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-4.1-mini',
+          model: 'openai/gpt-4o-mini',
           messages: [systemMessage, userMessage],
         }),
       });
