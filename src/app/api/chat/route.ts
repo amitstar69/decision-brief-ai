@@ -8,17 +8,22 @@ import { NextRequest, NextResponse } from 'next/server';
     content: string;
   };
 
-  function isValidBrief(text: string): boolean {
-    // Updated to match the plain text format from the new prompt
+   function isValidBrief(text: string): boolean {
+    // Updated to match decision-focused format
     const requiredHeadings = [
-      'SUMMARY',
-      'WHAT\'S HAPPENING',
-      'WHY THIS MATTERS',
-      'BUSINESS IMPACT',
-      'KEY DECISIONS',
+      'DECISION BEING MADE',
+      'OPTIONS CONSIDERED',
+      'TRADEOFFS',
+      'RECOMMENDED DECISION',
+      'DECISION OWNER',
       'RISKS & WATCHOUTS',
-      'NEXT 3 ACTIONS (90-DAY WINDOW)',
+      'NEXT 3 ACTIONS',
     ];
+
+    // Check if all required sections are present
+    return requiredHeadings.every((h) => text.toUpperCase().includes(h));
+  }
+
 
     // Check if all required sections are present
     return requiredHeadings.every((h) => text.toUpperCase().includes(h));
