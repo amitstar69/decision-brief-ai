@@ -274,10 +274,17 @@
               </div>
             </form>
 
-            {/* OUTPUT */}
+           {/* OUTPUT */}
             <section className="border-t border-slate-800 pt-4">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-slate-200">Executive Brief</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-slate-200">Executive Brief</h2>
+                  {brief && (
+                    <span className="px-2 py-1 text-xs font-medium bg-blue-600/20 text-blue-400 rounded border border-blue-600/30">
+                      {lens} Lens
+                    </span>
+                  )}
+                </div>
                 {brief && (
                   <button
                     className="text-xs text-blue-400 hover:underline"
