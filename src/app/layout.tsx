@@ -1,17 +1,27 @@
-import './globals.css';
-import { Inter } from 'next/font/google';
+ import type { Metadata } from "next";
+  import { Inter } from "next/font/google";
+  import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+  const inter = Inter({
+    subsets: ["latin"],
+    variable: "--font-inter"
+  });
 
-export const metadata = {
-  title: 'Decision Brief AI',
-  description: 'Minimal Next.js + OpenRouter app that turns pasted text into a structured executive decision brief.',
-};
+  export const metadata: Metadata = {
+    title: "Decision Brief AI - Transform Notes Into Board-Ready Briefs",
+    description: "AI-powered executive summaries in 30 seconds. Upload documents or paste text to generate structured decision briefs through 5 strategic lenses.",
+  };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
-  );
-}
+  export default function RootLayout({
+    children,
+  }: Readonly<{
+    children: React.ReactNode;
+  }>) {
+    return (
+      <html lang="en">
+        <body className={`${inter.variable} font-sans antialiased`}>
+          {children}
+        </body>
+      </html>
+    );
+  }
