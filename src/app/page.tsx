@@ -20,13 +20,13 @@
 
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-          <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6 text-balance">
-            Transform Messy Notes Into
-            <span className="text-blue-600"> Board-Ready Briefs</span>
-          </h1>
-          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto text-balance">
-            AI-powered executive summaries in 30 seconds. Upload any document or paste text to generate structured decision briefs.
-          </p>
+         <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6 text-balance">
+    Turn 2-Hour Meetings Into
+    <span className="text-blue-600"> 1-Page Decision Docs</span>
+  </h1>
+  <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto text-balance">
+    Decision compression engine for product leaders. Paste your meeting transcript, PRD, or strategy memo and get clear decisions, tradeoffs, and next actions in 30 seconds.
+  </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link 
               href="/app"
@@ -44,69 +44,65 @@
 
           {/* Trust Badge */}
           <p className="mt-8 text-sm text-slate-500">
-            Powered by OpenAI GPT-4 • Free to use • No signup required
-          </p>
+    From meeting → decision → action in 30 seconds • No signup required
+  </p>
         </section>
 
         {/* Features Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 
-  7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">5 Executive Lenses</h3>
-              <p className="text-slate-600 text-sm">
-                Analyze through Product, Revenue, Ops, Customer, or Risk perspectives tailored for different stakeholders.
-              </p>
-            </div>
+           {/* Feature 1 */}
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">Decision Extraction</h3>
+    <p className="text-slate-600 text-sm">
+      Automatically identifies the core decision, options considered, and tradeoffs from your meetings and docs.
+    </p>
+  </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 
-  2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Multi-Format Support</h3>
-              <p className="text-slate-600 text-sm">
-                Upload PDFs, DOCX, TXT files, or paste text directly. We handle the parsing seamlessly.
-              </p>
-            </div>
+  {/* Feature 2 */}
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">Clear Recommendations</h3>
+    <p className="text-slate-600 text-sm">
+      Get opinionated recommendations with reasoning, decision owners, and timelines - not just summaries.
+    </p>
+  </div>
 
-            {/* Feature 3 */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 
-  01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">AI Follow-ups</h3>
-              <p className="text-slate-600 text-sm">
-                Ask questions about your brief and get instant, context-aware answers from the AI.
-              </p>
-            </div>
+  {/* Feature 3 */}
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">Meeting Transcripts</h3>
+    <p className="text-slate-600 text-sm">
+      Works with Zoom, Google Meet, Teams transcripts, plus PRDs, strategy docs, and Slack threads.
+    </p>
+  </div>
 
-            {/* Feature 4 */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">30-Second Generation</h3>
-              <p className="text-slate-600 text-sm">
-                Get structured, board-ready briefs instantly. No more hours spent condensing information.
-              </p>
-            </div>
-          </div>
+  {/* Feature 4 */}
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9
+   5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">Action-Oriented Output</h3>
+    <p className="text-slate-600 text-sm">
+      Every brief includes decision owner, risk assessment, and 3 concrete next actions with timelines.
+    </p>
+  </div>
         </section>
 
         {/* How It Works */}
@@ -118,40 +114,38 @@
             </div>
 
             <div className="grid md:grid-cols-3 gap-12">
-              {/* Step 1 */}
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                  1
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">Upload or Paste</h3>
-                <p className="text-slate-600">
-                  Upload a document (PDF, DOCX, TXT) or paste your meeting notes, emails, or any text content.
-                </p>
-              </div>
+               {/* Step 1 */}
+  <div className="text-center">
+    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+      1
+    </div>
+    <h3 className="text-xl font-semibold text-slate-900 mb-3">Paste Your Content</h3>
+    <p className="text-slate-600">
+      Copy your meeting transcript (Zoom, Meet, Teams), PRD, strategy doc, or Slack thread.
+    </p>
+  </div>
 
-              {/* Step 2 */}
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                  2
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">Select Your Lens</h3>
-                <p className="text-slate-600">
-                  Choose an executive perspective: Product, Revenue, Operations, Customer, or Risk analysis.
-                </p>
-              </div>
+  {/* Step 2 */}
+  <div className="text-center">
+    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+      2
+    </div>
+    <h3 className="text-xl font-semibold text-slate-900 mb-3">Choose Your Lens</h3>
+    <p className="text-slate-600">
+      Select Product, Revenue, Ops, Customer, or Risk perspective to color the analysis.
+    </p>
+  </div>
 
-              {/* Step 3 */}
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                  3
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">Get Your Brief</h3>
-                <p className="text-slate-600">
-                  Receive a structured executive brief with summary, impacts, decisions, risks, and action items.
-                </p>
-              </div>
-            </div>
-          </div>
+  {/* Step 3 */}
+  <div className="text-center">
+    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+      3
+    </div>
+    <h3 className="text-xl font-semibold text-slate-900 mb-3">Get Your Decision Doc</h3>
+    <p className="text-slate-600">
+      Receive a 1-page brief with the decision, options, tradeoffs, recommendation, owner, risks, and actions.
+    </p>
+  </div>
         </section>
 
         {/* Use Cases */}
@@ -169,27 +163,33 @@
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">💼 Executives</h3>
-              <p className="text-slate-600 text-sm">
-                Prepare for board meetings by condensing reports, emails, and updates into actionable summaries.
-              </p>
-            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">📊 Product Leaders</h3>
+    <p className="text-slate-600 text-sm">
+      Turn roadmap discussions, feature debates, and prioritization meetings into clear go/no-go decisions.
+    </p>
+  </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">🎯 VPs & Directors</h3>
-              <p className="text-slate-600 text-sm">
-                Summarize team updates, project status, and strategic initiatives for leadership reviews.
-              </p>
-            </div>
+  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">💼 Consulting Teams</h3>
+    <p className="text-slate-600 text-sm">
+      Compress client discovery calls and workshop outputs into executive-ready decision memos.
+    </p>
+  </div>
 
-            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">🚀 Founders</h3>
-              <p className="text-slate-600 text-sm">
-                Condense customer feedback, investor updates, and market research into strategic decision documents.
-              </p>
-            </div>
-          </div>
+  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">🚀 Founders</h3>
+    <p className="text-slate-600 text-sm">
+      Cut through Slack chaos and endless meetings - extract decisions from discussions instantly.
+    </p>
+  </div>
+
+  <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
+    <h3 className="text-lg font-semibold text-slate-900 mb-2">🎯 Strategy Teams</h3>
+    <p className="text-slate-600 text-sm">
+      Transform long strategy memos and scenario planning into crisp decision frameworks.
+    </p>
+  </div>
         </section>
 
         {/* CTA Section */}
