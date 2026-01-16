@@ -9,9 +9,9 @@
       "lint": "next lint"
     },
     "dependencies": {
-      "next": "15.1.7",
-      "react": "19.0.0",
-      "react-dom": "19.0.0",
+      "next": "15.1.9",
+      "react": "19.0.3",
+      "react-dom": "19.0.3",
       "pdfjs-dist": "3.11.174",
       "mammoth": "1.8.0"
     },
@@ -23,6 +23,6 @@
       "eslint": "9.17.0",
       "@types/react": "19.0.6",
       "@types/node": "22.10.5",
-      "eslint-config-next": "15.1.7"
+      "eslint-config-next": "15.1.9"
     }
   }
