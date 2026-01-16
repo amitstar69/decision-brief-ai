@@ -3,6 +3,8 @@
   import { useState, FormEvent, useRef } from 'react';
   import { extractTextFromFile, formatFileSize, isValidFileType } from '@/lib/documentParser';
   import Link from 'next/link';
+  import { parseBrief } from '@/lib/briefParser';
+  import BriefSection from '@/components/BriefSection';
 
   function cleanMarkdown(text: string) {
     return text
@@ -275,32 +277,63 @@
             </form>
 
            {/* OUTPUT */}
-            <section className="border-t border-slate-800 pt-4">
-              <div className="flex items-center justify-between mb-2">
+            <section className="border-t border-slate-800 pt-6">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-slate-200">Executive Brief</h2>
+                  <h2 className="text-lg font-semibold text-slate-200">Executive Brief</h2>
                   {brief && (
-                    <span className="px-2 py-1 text-xs font-medium bg-blue-600/20 text-blue-400 rounded border border-blue-600/30">
+                    <span className="px-3 py-1 text-xs font-medium bg-blue-600/20 text-blue-400 rounded-full border border-blue-600/30">
                       {lens} Lens
                     </span>
                   )}
                 </div>
                 {brief && (
                   <button
-                    className="text-xs text-blue-400 hover:underline"
+                    className="px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-slate-800 rounded-lg transition-colors"
                     onClick={() => navigator.clipboard.writeText(brief)}
                   >
-                    Copy
+                    📋 Copy All
                   </button>
                 )}
               </div>
 
-              <div className="min-h-[160px] rounded-md border border-slate-800 bg-slate-950/70 p-3 text-sm whitespace-pre-wrap text-slate-300">
-                {!brief && !isLoading && <span className="text-slate-500">Your brief will appear here…</span>}
-                {isLoading && <span className="text-slate-400">Thinking like an exec…</span>}
-                {!isLoading && brief && <span>{cleanMarkdown(brief)}</span>}
-              </div>
+              {!brief && !isLoading && (
+                <div className="rounded-xl border-2 border-dashed border-slate-700 bg-slate-900/30 p-12 text-center">
+                  <div className="text-4xl mb-4">📄</div>
+                  <p className="text-slate-400 text-sm mb-2">Your brief will appear here</p>
+                  <p className="text-slate-500 text-xs">Upload a document or paste text to get started</p>
+                </div>
+              )}
+
+              {isLoading && (
+                <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-center text-slate-300 text-sm font-medium mb-1">
+                    Analyzing through {lens} lens...
+                  </p>
+                  <p className="text-center text-slate-500 text-xs">
+                    Generating your executive brief
+                  </p>
+                </div>
+              )}
+
+              {!isLoading && brief && (
+                <div className="space-y-0">
+                  {parseBrief(brief).map((section, index) => (
+                    <BriefSection 
+                      key={section.id} 
+                      section={section} 
+                      isFirst={index === 0}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
+
 
             {/* FOLLOW-UP QUESTIONS */}
             {brief && (
