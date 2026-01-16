@@ -1,324 +1,237 @@
-'use client';
+ import Link from 'next/link';
 
-  import { useState, FormEvent, useRef } from 'react';
-  import { extractTextFromFile, formatFileSize, isValidFileType } from '@/lib/documentParser';
-
-  function cleanMarkdown(text: string) {
-    return text
-      .replace(/\*\*/g, '')         // remove bold markers
-      .replace(/^#{1,6}\s*/gm, '')  // remove ### headers
-      .replace(/^- \s*/gm, '')      // remove "- " bullets
-      .replace(/\*\s*/gm, '');      // remove "* " bullets
-  }
-
-  type ExecLens = 'Product' | 'Revenue' | 'Ops' | 'Customer' | 'Risk';
-
-  type QAItem = {
-    role: 'user' | 'assistant';
-    content: string;
-  };
-
-  export default function HomePage() {
-    const [content, setContent] = useState('');
-    const [lens, setLens] = useState<ExecLens>('Product');
-    const [brief, setBrief] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
-
-    // File upload state
-    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [isParsingFile, setIsParsingFile] = useState(false);
-    const [fileError, setFileError] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Follow-up state
-    const [question, setQuestion] = useState('');
-    const [qa, setQa] = useState<QAItem[]>([]);
-    const [isFollowupLoading, setIsFollowupLoading] = useState(false);
-
-    async function handleFileUpload(file: File) {
-      setFileError('');
-
-      if (!isValidFileType(file)) {
-        setFileError('Please upload a PDF, DOCX, or TXT file.');
-        return;
-      }
-
-      // Check file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setFileError('File is too large. Maximum size is 10MB.');
-        return;
-      }
-
-      setIsParsingFile(true);
-      setUploadedFile(file);
-
-      try {
-        const extractedText = await extractTextFromFile(file);
-        setContent(extractedText);
-        setFileError('');
-      } catch (error) {
-        console.error('Error parsing file:', error);
-        setFileError('Failed to parse document. Please try again.');
-        setUploadedFile(null);
-      } finally {
-        setIsParsingFile(false);
-      }
-    }
-
-    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-      const file = e.target.files?.[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-    }
-
-    function handleRemoveFile() {
-      setUploadedFile(null);
-      setContent('');
-      setFileError('');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-
-    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-      e.preventDefault();
-
-      const trimmed = content.trim();
-      if (!trimmed) return;
-
-      setIsLoading(true);
-      setErrorMsg('');
-      setBrief('');
-      setQa([]);
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: trimmed, lens }),
-        });
-
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok) {
-          setErrorMsg(data?.error || 'Error generating brief');
-          setIsLoading(false);
-          return;
-        }
-
-        setBrief(data.brief || '');
-      } catch (err) {
-        setErrorMsg('Network error');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    async function handleFollowup() {
-      if (!question.trim() || !brief || !content) return;
-
-      setIsFollowupLoading(true);
-
-      try {
-        const res = await fetch('/api/followup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            notes: content,
-            summary: brief,
-            question,
-            history: qa,
-          }),
-        });
-
-        const data = await res.json().catch(() => null);
-
-        if (data?.error) {
-          setQa([...qa, { role: 'user', content: question }, { role: 'assistant', content: data.error }]);
-        } else {
-          setQa([
-            ...qa,
-            { role: 'user', content: question },
-            { role: 'assistant', content: data.answer },
-          ]);
-        }
-
-        setQuestion('');
-      } catch (err) {
-        setQa([
-          ...qa,
-          { role: 'user', content: question },
-          { role: 'assistant', content: 'Network error' },
-        ]);
-      } finally {
-        setIsFollowupLoading(false);
-      }
-    }
-
+  export default function LandingPage() {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-50 px-4 py-8">
-        <div className="w-full max-w-3xl border border-slate-800 rounded-xl p-5 bg-slate-900/80 shadow-xl">
-          <header className="mb-4">
-            <h1 className="text-2xl font-semibold">Decision Brief AI</h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Upload a document or paste any email, doc, or notes. Choose a lens. Generate a board-ready brief.
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="text-xl font-bold text-slate-900">
+              Decision Brief AI
+            </div>
+            <Link 
+              href="/app"
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Try It Free
+            </Link>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+          <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6 text-balance">
+            Transform Messy Notes Into
+            <span className="text-blue-600"> Board-Ready Briefs</span>
+          </h1>
+          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto text-balance">
+            AI-powered executive summaries in 30 seconds. Upload any document or paste text to generate structured decision briefs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link 
+              href="/app"
+              className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
+            >
+              Generate Your First Brief
+            </Link>
+            <a 
+              href="#how-it-works"
+              className="px-8 py-4 bg-white text-slate-700 text-lg font-semibold rounded-lg hover:bg-slate-50 transition-colors border-2 border-slate-200"
+            >
+              See How It Works
+            </a>
+          </div>
+
+          {/* Trust Badge */}
+          <p className="mt-8 text-sm text-slate-500">
+            Powered by OpenAI GPT-4 • Free to use • No signup required
+          </p>
+        </section>
+
+        {/* Features Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 
+  7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">5 Executive Lenses</h3>
+              <p className="text-slate-600 text-sm">
+                Analyze through Product, Revenue, Ops, Customer, or Risk perspectives tailored for different stakeholders.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 
+  2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Multi-Format Support</h3>
+              <p className="text-slate-600 text-sm">
+                Upload PDFs, DOCX, TXT files, or paste text directly. We handle the parsing seamlessly.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 
+  01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">AI Follow-ups</h3>
+              <p className="text-slate-600 text-sm">
+                Ask questions about your brief and get instant, context-aware answers from the AI.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">30-Second Generation</h3>
+              <p className="text-slate-600 text-sm">
+                Get structured, board-ready briefs instantly. No more hours spent condensing information.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="bg-white py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-slate-900 mb-4">How It Works</h2>
+              <p className="text-xl text-slate-600">Three simple steps to your executive brief</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-12">
+              {/* Step 1 */}
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                  1
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">Upload or Paste</h3>
+                <p className="text-slate-600">
+                  Upload a document (PDF, DOCX, TXT) or paste your meeting notes, emails, or any text content.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                  2
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">Select Your Lens</h3>
+                <p className="text-slate-600">
+                  Choose an executive perspective: Product, Revenue, Operations, Customer, or Risk analysis.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                  3
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">Get Your Brief</h3>
+                <p className="text-slate-600">
+                  Receive a structured executive brief with summary, impacts, decisions, risks, and action items.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Use Cases */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Perfect For</h2>
+            <p className="text-xl text-slate-600">Who benefits from Decision Brief AI</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">📊 Product Managers</h3>
+              <p className="text-slate-600 text-sm">
+                Transform feature requests, user feedback, and roadmap notes into clear product briefs for stakeholders.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">💼 Executives</h3>
+              <p className="text-slate-600 text-sm">
+                Prepare for board meetings by condensing reports, emails, and updates into actionable summaries.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">🎯 VPs & Directors</h3>
+              <p className="text-slate-600 text-sm">
+                Summarize team updates, project status, and strategic initiatives for leadership reviews.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">🚀 Founders</h3>
+              <p className="text-slate-600 text-sm">
+                Condense customer feedback, investor updates, and market research into strategic decision documents.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="bg-gradient-to-r from-blue-600 to-indigo-600 py-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Ready to transform your notes?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Start generating executive briefs in seconds. No signup required.
             </p>
-          </header>
+            <Link 
+              href="/app"
+              className="inline-block px-8 py-4 bg-white text-blue-600 text-lg font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-xl"
+            >
+              Generate Your First Brief →
+            </Link>
+          </div>
+        </section>
 
-          {/* MAIN BRIEF FORM */}
-          <form onSubmit={handleSubmit} className="space-y-3 mb-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Lens</label>
-              <select
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
-                value={lens}
-                onChange={(e) => setLens(e.target.value as ExecLens)}
-                disabled={isLoading || isParsingFile}
-              >
-                <option value="Product">Product</option>
-                <option value="Revenue">Revenue</option>
-                <option value="Ops">Ops</option>
-                <option value="Customer">Customer</option>
-                <option value="Risk">Risk</option>
-              </select>
-            </div>
-
-            {/* FILE UPLOAD SECTION */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Upload Document (PDF, DOCX, or TXT)
-              </label>
-              <div className="flex items-center gap-2">
-                <label className="cursor-pointer">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.docx,.txt"
-                    onChange={handleFileChange}
-                    disabled={isLoading || isParsingFile}
-                    className="hidden"
-                  />
-                  <span className="inline-block rounded-md bg-slate-800 border border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-50">
-                    {isParsingFile ? 'Processing...' : 'Choose File'}
-                  </span>
-                </label>
-
-                {uploadedFile && (
-                  <div className="flex-1 flex items-center justify-between bg-slate-800 border border-slate-700 rounded-md px-3 py-2">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 
-  5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="text-xs text-slate-300 truncate">
-                        {uploadedFile.name} ({formatFileSize(uploadedFile.size)})
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveFile}
-                      className="ml-2 text-xs text-red-400 hover:text-red-300"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
+        {/* Footer */}
+        <footer className="bg-slate-900 text-slate-400 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-4 md:mb-0">
+                <p className="text-lg font-semibold text-white mb-2">Decision Brief AI</p>
+                <p className="text-sm">Transform notes into board-ready briefs.</p>
               </div>
-              {fileError && <p className="text-xs text-red-400 mt-1">{fileError}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Or Paste Notes {uploadedFile && '(append to uploaded document)'}
-              </label>
-              <textarea
-                className="w-full h-40 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm leading-relaxed resize-y"
-                placeholder="Paste your meeting notes, email, or doc…"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                disabled={isLoading || isParsingFile}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              {errorMsg && <span className="text-xs text-red-400">{errorMsg}</span>}
-              <button
-                type="submit"
-                className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-50"
-                disabled={isLoading || isParsingFile || !content.trim()}
-              >
-                {isLoading ? 'Generating…' : 'Generate Brief'}
-              </button>
-            </div>
-          </form>
-
-          {/* OUTPUT */}
-          <section className="border-t border-slate-800 pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-slate-200">Executive Brief</h2>
-              {brief && (
-                <button
-                  className="text-xs text-blue-400 hover:underline"
-                  onClick={() => navigator.clipboard.writeText(brief)}
-                >
-                  Copy
-                </button>
-              )}
-            </div>
-
-            <div className="min-h-[160px] rounded-md border border-slate-800 bg-slate-950/70 p-3 text-sm whitespace-pre-wrap">
-              {!brief && !isLoading && <span className="text-slate-500">Your brief will appear here…</span>}
-              {isLoading && <span className="text-slate-400">Thinking like an exec…</span>}
-              {!isLoading && brief && <span>{cleanMarkdown(brief)}</span>}
-            </div>
-          </section>
-
-          {/* FOLLOW-UP QUESTIONS */}
-          {brief && (
-            <section className="mt-8 border-t border-slate-800 pt-4">
-              <h2 className="text-sm font-semibold text-slate-200 mb-2">Follow-up questions</h2>
-
-              <div className="flex space-x-2 mb-3">
-                <input
-                  type="text"
-                  className="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
-                  placeholder="Ask a question…"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  disabled={isFollowupLoading}
-                />
-                <button
-                  onClick={handleFollowup}
-                  className="rounded-md bg-purple-600 px-3 py-2 text-sm hover:bg-purple-500 disabled:opacity-50"
-                  disabled={isFollowupLoading}
-                >
-                  {isFollowupLoading ? 'Thinking…' : 'Ask'}
-                </button>
+              <div className="flex gap-6 text-sm">
+                <a href="https://github.com/amitstar69/decision-brief-ai" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  GitHub
+                </a>
+                <Link href="/app" className="hover:text-white transition-colors">
+                  Launch App
+                </Link>
               </div>
-
-              <div className="space-y-3">
-                {qa.map((entry, i) => (
-                  <div
-                    key={i}
-                    className={`p-3 rounded-md text-sm ${
-                      entry.role === 'user'
-                        ? 'bg-slate-800 border border-slate-700'
-                        : 'bg-slate-900 border border-slate-800'
-                    }`}
-                  >
-                    <strong className="block mb-1">
-                      {entry.role === 'user' ? 'You' : 'AI'}
-                    </strong>
-                    {cleanMarkdown(entry.content)}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      </main>
+            </div>
+            <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm">
+              <p>Powered by OpenAI GPT-4 & Next.js • Built with ❤️</p>
+            </div>
+          </div>
+        </footer>
+      </div>
     );
   }
