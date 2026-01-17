@@ -1,12 +1,109 @@
- import { NextRequest, NextResponse } from 'next/server';
-  import { buildExecSystemPrompt, type ExecLens } from '@/lib/execPrompt';
+ import { checkRateLimit } from '@/lib/rateLimiter';
 
-  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  const VALID_LENSES = ['Product', 'Revenue', 'Ops', 'Customer', 'Risk'] as const;
+  const MAX_CONTENT_LENGTH = 50000;
 
-  type ChatMessage = {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-  };
+  Replace entire POST function:
+
+  export async function POST(req: NextRequest) {
+    try {
+      // Rate limiting - 10 briefs per IP per day
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                 req.headers.get('x-real-ip') ||
+                 'unknown';
+
+      const rateCheck = checkRateLimit(ip);
+
+      if (!rateCheck.allowed) {
+        const hoursUntilReset = Math.ceil((rateCheck.resetTime - Date.now()) / (1000 * 60 * 60));
+        return NextResponse.json(
+          {
+            error: `Daily limit reached (10 briefs/day). Resets in ${hoursUntilReset} hours.`,
+            resetTime: rateCheck.resetTime
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': '10',
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': rateCheck.resetTime.toString()
+            }
+          }
+        );
+      }
+
+      const { content: rawContent, lens = 'Product' } = await req.json();
+
+      // Input validation
+      if (!rawContent || typeof rawContent !== 'string') {
+        return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+      }
+
+      if (rawContent.length > MAX_CONTENT_LENGTH) {
+        return NextResponse.json({ error: 'Content too large (max 50KB)' }, { status: 400 });
+      }
+
+      if (!VALID_LENSES.includes(lens as any)) {
+        return NextResponse.json({ error: 'Invalid lens parameter' }, { status: 400 });
+      }
+
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        console.error('OPENROUTER_API_KEY not configured');
+        return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
+      }
+
+      const systemPrompt = buildExecSystemPrompt(lens);
+      const messages: ChatMessage[] = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: rawContent },
+      ];
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://decision-brief-ai.vercel.app',
+          'X-Title': 'Decision Brief AI',
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-4o-mini',
+          messages,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('OpenRouter API error:', response.status);
+        return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 });
+      }
+
+      const data = await response.json();
+      const briefText = data.choices?.[0]?.message?.content;
+
+      if (!briefText) {
+        return NextResponse.json({ error: 'No response from AI' }, { status: 500 });
+      }
+
+      if (!isValidBrief(briefText)) {
+        return NextResponse.json({ error: 'Brief validation failed' }, { status: 500 });
+      }
+
+      return NextResponse.json(
+        { brief: briefText, lens },
+        {
+          headers: {
+            'X-RateLimit-Limit': '10',
+            'X-RateLimit-Remaining': rateCheck.remaining.toString(),
+            'X-RateLimit-Reset': rateCheck.resetTime.toString()
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error in chat route:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+  }
 
   function isValidBrief(text: string): boolean {
     const requiredHeadings = [
@@ -18,83 +115,6 @@
       'RISKS & WATCHOUTS',
       'NEXT 3 ACTIONS',
     ];
-
-    return requiredHeadings.every((h) => text.toUpperCase().includes(h));
-  }
-
-  export async function POST(req: NextRequest) {
-    try {
-      if (!OPENROUTER_API_KEY) {
-        return NextResponse.json(
-          { error: 'Missing OPENROUTER_API_KEY' },
-          { status: 500 },
-        );
-      }
-
-      const body = await req.json();
-      const rawContent: string | undefined = body?.content;
-      const lens: ExecLens = body?.lens || 'Product';
-
-      if (!rawContent || typeof rawContent !== 'string') {
-        return NextResponse.json(
-          { error: 'Missing "content" string in body' },
-          { status: 400 },
-        );
-      }
-
-      const systemMessage: ChatMessage = {
-        role: 'system',
-        content: buildExecSystemPrompt(lens),
-      };
-
-      const userMessage: ChatMessage = {
-        role: 'user',
-        content: rawContent,
-      };
-
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://github.com/amitstar69/decision-brief-ai',
-          'X-Title': 'Decision Brief AI',
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-4o-mini',
-          messages: [systemMessage, userMessage],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { error: 'OpenRouter API error', details: errorText },
-          { status: 502 },
-        );
-      }
-
-      const data = await response.json();
-      const content: string = data?.choices?.[0]?.message?.content ?? '';
-
-      if (!content || !isValidBrief(content)) {
-        return NextResponse.json(
-          {
-            error: 'Brief generation failed validation',
-            details: 'Missing one or more required sections.',
-          },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json({
-        brief: content,
-        lens,
-      });
-    } catch {
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: 500 },
-      );
-    }
+    const upperText = text.toUpperCase();
+    return requiredHeadings.every((heading) => upperText.includes(heading));
   }
