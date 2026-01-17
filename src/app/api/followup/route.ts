@@ -1,13 +1,16 @@
+import { NextRequest, NextResponse } from 'next/server';
   import { checkRateLimit } from '@/lib/rateLimiter';
 
   const MAX_INPUT_LENGTH = 10000;
   const MAX_QUESTION_LENGTH = 2000;
 
-  Replace POST function start (first ~20 lines):
+  type ChatMessage = {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  };
 
   export async function POST(req: NextRequest) {
     try {
-      // Rate limiting - 20 follow-ups per IP per day
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                  req.headers.get('x-real-ip') ||
                  'unknown';
@@ -24,7 +27,6 @@
 
       const { notes, summary, question, history } = await req.json();
 
-      // Validation
       if (!notes || !summary || !question) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
       }
@@ -41,64 +43,43 @@
         return NextResponse.json({ error: 'Question too long' }, { status: 400 });
       }
 
-      // Build context-aware system prompt
-      const systemPrompt = `
-  You are an executive assistant helping answer follow-up questions about a decision brief.
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        return NextResponse.json({ error: 'API not configured' }, { status: 500 });
+      }
 
-  You have access to:
-  1. The original source notes/document
-  2. The executive brief that was generated
-  3. The conversation history
+      const systemPrompt = `You are a helpful assistant analyzing meeting notes and decision briefs. 
+  Provide concise, actionable answers based on the provided context.
 
-  Your job:
-  - Answer questions accurately using ONLY information from the source notes and brief
-  - Be concise and executive-focused (2-4 sentences unless more detail is requested)
-  - If the answer isn't in the source material, say "That information wasn't included in the source material"
-  - Provide actionable insights when possible
-  - Reference specific details from the notes when relevant
-  - Use plain text formatting (no markdown symbols)
+  ORIGINAL NOTES:
+  ${notes}
 
-  Keep responses brief and to the point.
-  `.trim();
+  DECISION BRIEF SUMMARY:
+  ${summary}
 
-      // Build conversation history for context
+  Answer questions directly and concisely.`;
+
       const messages: ChatMessage[] = [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: `Here are the original notes:\n\n${notes}`,
-        },
-        {
-          role: 'assistant',
-          content: `I've reviewed the notes. Here's the executive brief that was generated:\n\n${summary}`,
-        },
+        { role: 'system', content: systemPrompt },
       ];
 
-      // Add conversation history
-      history.forEach((item) => {
-        messages.push({
-          role: item.role,
-          content: item.content,
+      if (Array.isArray(history)) {
+        history.forEach((msg: any) => {
+          if (msg.role && msg.content) {
+            messages.push({ role: msg.role, content: msg.content });
+          }
         });
-      });
+      }
 
-      // Add the new question
-      messages.push({
-        role: 'user',
-        content: question,
-      });
+      messages.push({ role: 'user', content: question });
 
-      // Call OpenRouter API
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://github.com/amitstar69/decision-brief-ai',
-          'X-Title': 'Decision Brief AI - Follow-up',
+          'HTTP-Referer': 'https://decision-brief-ai.vercel.app',
+          'X-Title': 'Decision Brief AI',
         },
         body: JSON.stringify({
           model: 'openai/gpt-4o-mini',
@@ -107,26 +88,19 @@
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenRouter API error:', errorText);
-        return NextResponse.json(
-          { error: 'OpenRouter API error', details: errorText },
-          { status: 502 },
-        );
+        return NextResponse.json({ error: 'AI service error' }, { status: 503 });
       }
 
       const data = await response.json();
-      const answer: string = data?.choices?.[0]?.message?.content ?? 'No response generated';
+      const answer = data.choices?.[0]?.message?.content;
 
-      return NextResponse.json({
-        answer,
-      });
+      if (!answer) {
+        return NextResponse.json({ error: 'No response generated' }, { status: 500 });
+      }
+
+      return NextResponse.json({ answer });
     } catch (error) {
-      console.error('Follow-up API error:', error);
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: 500 },
-      );
+      console.error('Error in followup route:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   }
-
