@@ -1,37 +1,44 @@
- import { NextRequest, NextResponse } from 'next/server';
+  import { checkRateLimit } from '@/lib/rateLimiter';
 
-  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  const MAX_INPUT_LENGTH = 10000;
+  const MAX_QUESTION_LENGTH = 2000;
 
-  type QAItem = {
-    role: 'user' | 'assistant';
-    content: string;
-  };
-
-  type ChatMessage = {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-  };
+  Replace POST function start (first ~20 lines):
 
   export async function POST(req: NextRequest) {
     try {
-      if (!OPENROUTER_API_KEY) {
+      // Rate limiting - 20 follow-ups per IP per day
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                 req.headers.get('x-real-ip') ||
+                 'unknown';
+
+      const rateCheck = checkRateLimit(`followup-${ip}`);
+
+      if (!rateCheck.allowed) {
+        const hoursUntilReset = Math.ceil((rateCheck.resetTime - Date.now()) / (1000 * 60 * 60));
         return NextResponse.json(
-          { error: 'Missing OPENROUTER_API_KEY' },
-          { status: 500 },
+          { error: `Daily limit reached. Resets in ${hoursUntilReset} hours.` },
+          { status: 429 }
         );
       }
 
-      const body = await req.json();
-      const notes: string | undefined = body?.notes;
-      const summary: string | undefined = body?.summary;
-      const question: string | undefined = body?.question;
-      const history: QAItem[] = body?.history || [];
+      const { notes, summary, question, history } = await req.json();
 
+      // Validation
       if (!notes || !summary || !question) {
-        return NextResponse.json(
-          { error: 'Missing required fields: notes, summary, or question' },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      }
+
+      if (typeof notes !== 'string' || typeof summary !== 'string' || typeof question !== 'string') {
+        return NextResponse.json({ error: 'Invalid input types' }, { status: 400 });
+      }
+
+      if (notes.length > MAX_INPUT_LENGTH || summary.length > MAX_INPUT_LENGTH) {
+        return NextResponse.json({ error: 'Content too large' }, { status: 400 });
+      }
+
+      if (question.length > MAX_QUESTION_LENGTH) {
+        return NextResponse.json({ error: 'Question too long' }, { status: 400 });
       }
 
       // Build context-aware system prompt
