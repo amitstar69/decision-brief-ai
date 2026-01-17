@@ -1,13 +1,17 @@
- import { checkRateLimit } from '@/lib/rateLimiter';
+import { NextRequest, NextResponse } from 'next/server';
+  import { buildExecSystemPrompt } from '@/lib/execPrompt';
+  import { checkRateLimit } from '@/lib/rateLimiter';
 
   const VALID_LENSES = ['Product', 'Revenue', 'Ops', 'Customer', 'Risk'] as const;
   const MAX_CONTENT_LENGTH = 50000;
 
-  Replace entire POST function:
+  type ChatMessage = {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  };
 
   export async function POST(req: NextRequest) {
     try {
-      // Rate limiting - 10 briefs per IP per day
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                  req.headers.get('x-real-ip') ||
                  'unknown';
@@ -34,7 +38,6 @@
 
       const { content: rawContent, lens = 'Product' } = await req.json();
 
-      // Input validation
       if (!rawContent || typeof rawContent !== 'string') {
         return NextResponse.json({ error: 'Content is required' }, { status: 400 });
       }
