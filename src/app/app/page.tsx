@@ -1,9 +1,10 @@
 'use client';
 
-  import { useState, FormEvent, useRef } from 'react';
+  import { useState, FormEvent, useRef, useEffect } from 'react';
   import { extractTextFromFile, formatFileSize, isValidFileType } from '@/lib/documentParser';
   import { parseBrief } from '@/lib/briefParser';
   import BriefSection from '@/components/BriefSection';
+  import FeedbackButton from '@/components/FeedbackButton';
   import Link from 'next/link';
 
   function cleanMarkdown(text: string) {
@@ -21,6 +22,16 @@
     content: string;
   };
 
+  type SavedBrief = {
+    id: string;
+    title: string;
+    content: string;
+    brief: string;
+    lens: ExecLens;
+    qa: QAItem[];
+    timestamp: number;
+  };
+
   export default function AppPage() {
     const [content, setContent] = useState('');
     const [lens, setLens] = useState<ExecLens>('Product');
@@ -30,6 +41,8 @@
 
     // UI state
     const [showInputPanel, setShowInputPanel] = useState(true);
+    const [showHistory, setShowHistory] = useState(false);
+    const [savedBriefs, setSavedBriefs] = useState<SavedBrief[]>([]);
 
     // File upload state
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -41,6 +54,67 @@
     const [question, setQuestion] = useState('');
     const [qa, setQa] = useState<QAItem[]>([]);
     const [isFollowupLoading, setIsFollowupLoading] = useState(false);
+    const qaEndRef = useRef<HTMLDivElement>(null);
+
+    // Load saved briefs from localStorage on mount
+    useEffect(() => {
+      const saved = localStorage.getItem('savedBriefs');
+      if (saved) {
+        try {
+          setSavedBriefs(JSON.parse(saved));
+        } catch (e) {
+          console.error('Error loading saved briefs:', e);
+        }
+      }
+    }, []);
+
+    // Auto-scroll to latest Q&A
+    useEffect(() => {
+      qaEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [qa]);
+
+    // Save brief to localStorage
+    function saveBriefToHistory() {
+      const title = content.slice(0, 60) + (content.length > 60 ? '...' : '');
+      const newBrief: SavedBrief = {
+        id: Date.now().toString(),
+        title,
+        content,
+        brief,
+        lens,
+        qa,
+        timestamp: Date.now(),
+      };
+
+      const updated = [newBrief, ...savedBriefs].slice(0, 20); // Keep last 20
+      setSavedBriefs(updated);
+      localStorage.setItem('savedBriefs', JSON.stringify(updated));
+    }
+
+    // Load a saved brief
+    function loadBrief(saved: SavedBrief) {
+      setContent(saved.content);
+      setBrief(saved.brief);
+      setLens(saved.lens);
+      setQa(saved.qa);
+      setShowInputPanel(false);
+      setShowHistory(false);
+    }
+
+    // Delete a saved brief
+    function deleteBrief(id: string) {
+      const updated = savedBriefs.filter(b => b.id !== id);
+      setSavedBriefs(updated);
+      localStorage.setItem('savedBriefs', JSON.stringify(updated));
+    }
+
+    // Clear all history
+    function clearHistory() {
+      if (confirm('Are you sure you want to clear all saved briefs?')) {
+        setSavedBriefs([]);
+        localStorage.removeItem('savedBriefs');
+      }
+    }
 
     async function handleFileUpload(file: File) {
       setFileError('');
@@ -115,7 +189,11 @@
           return;
         }
 
-        setBrief(data.brief || '');
+        const generatedBrief = data.brief || '';
+        setBrief(generatedBrief);
+
+        // Save to localStorage after successful generation
+        setTimeout(() => saveBriefToHistory(), 500);
       } catch (err) {
         setErrorMsg('Network error');
       } finally {
@@ -185,10 +263,19 @@
               Decision Brief AI
             </Link>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                History ({savedBriefs.length})
+              </button>
               {brief && (
                 <button
                   onClick={handleNewBrief}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   + New Brief
                 </button>
@@ -202,6 +289,73 @@
             </div>
           </div>
         </header>
+
+        {/* History Sidebar */}
+        {showHistory && (
+          <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setShowHistory(false)}>
+            <div 
+              className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">Saved Briefs</h3>
+                <button onClick={() => setShowHistory(false)} className="text-slate-400 hover:text-slate-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {savedBriefs.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-slate-500 text-sm">No saved briefs yet</p>
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 space-y-2">
+                    {savedBriefs.map((saved) => (
+                      <div
+                        key={saved.id}
+                        className="p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer group"
+                      >
+                        <div onClick={() => loadBrief(saved)}>
+                          <p className="text-sm font-medium text-slate-900 mb-1 line-clamp-2">
+                            {saved.title}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              {new Date(saved.timestamp).toLocaleDateString()}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                              {saved.lens}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteBrief(saved.id);
+                          }}
+                          className="mt-2 text-xs text-red-600 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4">
+                    <button
+                      onClick={clearHistory}
+                      className="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Clear All History
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -217,7 +371,6 @@
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Lens Selection */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Analysis Lens
@@ -236,7 +389,6 @@
                   </select>
                 </div>
 
-                {/* File Upload */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Upload Document (Optional)
@@ -288,7 +440,6 @@
                   {fileError && <p className="text-sm text-red-600 mt-2">{fileError}</p>}
                 </div>
 
-                {/* Text Input */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Paste Content
@@ -306,7 +457,6 @@
                   </p>
                 </div>
 
-                {/* Submit Button */}
                 <div className="flex items-center justify-between pt-2">
                   {errorMsg && <span className="text-sm text-red-600">{errorMsg}</span>}
                   <button
@@ -377,7 +527,6 @@
 
           {!isLoading && brief && (
             <div>
-              {/* Header with Lens Badge */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <h2 className="text-2xl font-bold text-slate-900">Decision Brief</h2>
@@ -398,7 +547,6 @@
                 </button>
               </div>
 
-              {/* Brief Sections */}
               <div className="space-y-4">
                 {parseBrief(brief).map((section, index) => (
                   <BriefSection 
@@ -413,47 +561,31 @@
 
           {/* Follow-up Questions */}
           {brief && (
-            <div className="mt-8 bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Ask Follow-up Questions</h3>
+            <div className="mt-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Follow-up Discussion</h3>
 
-              <div className="flex gap-3 mb-4">
-                <input
-                  type="text"
-                  className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 
-  focus:border-transparent"
-                  placeholder="What are the biggest risks? Who should make this decision?"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleFollowup()}
-                  disabled={isFollowupLoading}
-                />
-                <button
-                  onClick={handleFollowup}
-                  className="px-5 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
-                  disabled={isFollowupLoading || !question.trim()}
-                >
-                  {isFollowupLoading ? 'Thinking...' : 'Ask'}
-                </button>
-              </div>
-
+              {/* Q&A Thread */}
               {qa.length > 0 && (
-                <div className="space-y-3 mt-6">
+                <div className="space-y-3 mb-4">
                   {qa.map((entry, i) => (
                     <div
                       key={i}
-                      className={`p-4 rounded-lg ${
+                      className={`rounded-xl shadow-sm border p-5 ${
                         entry.role === 'user'
-                          ? 'bg-slate-50 border border-slate-200'
-                          : 'bg-blue-50 border border-blue-200'
+                          ? 'bg-white border-slate-200'
+                          : 'bg-blue-50 border-blue-200'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                           entry.role === 'user' 
-                            ? 'bg-slate-200 text-slate-700' 
-                            : 'bg-blue-200 text-blue-700'
+                            ? 'bg-slate-100' 
+                            : 'bg-blue-100'
                         }`}>
-                          {entry.role === 'user' ? 'You' : 'AI'}
+                          {entry.role === 'user' ? '👤' : '🤖'}
+                        </div>
+                        <span className="text-sm font-semibold text-slate-900">
+                          {entry.role === 'user' ? 'You' : 'AI Assistant'}
                         </span>
                       </div>
                       <p className="text-sm text-slate-700 leading-relaxed">
@@ -461,11 +593,41 @@
                       </p>
                     </div>
                   ))}
+                  <div ref={qaEndRef} />
                 </div>
               )}
+
+              {/* Input at Bottom */}
+              <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 
+  focus:border-transparent"
+                    placeholder="Ask a follow-up question..."
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleFollowup()}
+                    disabled={isFollowupLoading}
+                  />
+                  <button
+                    onClick={handleFollowup}
+                    className="px-6 py-3 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                    disabled={isFollowupLoading || !question.trim()}
+                  >
+                    {isFollowupLoading ? 'Thinking...' : 'Ask'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Ask about risks, decision makers, timelines, or clarify any section
+                </p>
+              </div>
             </div>
           )}
         </main>
+
+        {/* Feedback Button */}
+        <FeedbackButton />
       </div>
     );
   }
