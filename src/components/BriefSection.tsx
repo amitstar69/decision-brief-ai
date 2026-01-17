@@ -85,9 +85,9 @@
     );
   }
 
-  function formatContent(content: string) {
+  function formatContent(content: string): React.ReactNode {
     const lines = content.trim().split('\n');
-    const elements: JSX.Element[] = [];
+    const elements: React.ReactNode[] = [];
     let currentList: string[] = [];
     let listType: 'bullet' | 'number' | null = null;
 
@@ -118,7 +118,7 @@
       }
     };
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       const trimmed = line.trim();
 
       if (!trimmed) {
@@ -126,7 +126,6 @@
         return;
       }
 
-      // Check for bullet point
       if (trimmed.match(/^[•\-\*]\s+/)) {
         const content = trimmed.replace(/^[•\-\*]\s+/, '');
         if (listType !== 'bullet') {
@@ -135,7 +134,6 @@
         }
         currentList.push(content);
       }
-      // Check for numbered list
       else if (trimmed.match(/^\d+[\.)]\s+/)) {
         const content = trimmed.replace(/^\d+[\.)]\s+/, '');
         if (listType !== 'number') {
@@ -144,7 +142,6 @@
         }
         currentList.push(content);
       }
-      // Check for "Option X:" pattern
       else if (trimmed.match(/^(Option|Choice)\s+\d+:/i)) {
         flushList();
         elements.push(
@@ -153,7 +150,6 @@
           </div>
         );
       }
-      // Check for subsections (indented or prefixed)
       else if (trimmed.match(/^(P0|P1|P2|Pros?:|Cons?:)/i)) {
         flushList();
         const match = trimmed.match(/^(P0|P1|P2)/i);
@@ -182,7 +178,6 @@
           );
         }
       }
-      // Regular paragraph
       else {
         flushList();
         elements.push(
