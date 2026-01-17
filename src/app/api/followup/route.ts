@@ -82,7 +82,7 @@ import { NextRequest, NextResponse } from 'next/server';
           'X-Title': 'Decision Brief AI',
         },
         body: JSON.stringify({
-          model: 'google/gemini-3-flash-preview',
+          model: 'openai/gpt-4o-mini',
           messages,
         }),
       });
