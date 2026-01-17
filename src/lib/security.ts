@@ -1,29 +1,33 @@
 import crypto from "crypto";
 
-const APP_URL = process.env.APP_URL;
+/**
+ * HARD-CODED APP URL (launch-safe)
+ * No trailing slash
+ */
+const APP_URL = "https://decision-brief-ai.vercel.app";
 
-if (!APP_URL) {
-  throw new Error("APP_URL environment variable is not set");
-}
-
-// Only allow requests originating from your own site
-const allowedOrigins = new Set<string>([APP_URL]);
-
+/**
+ * Allow only requests coming from your own site
+ */
 export function assertAllowedOrigin(req: Request) {
   const origin = req.headers.get("origin");
   const referer = req.headers.get("referer");
 
-  // If Origin header exists, it must match
-  if (origin && !allowedOrigins.has(origin)) {
+  // If Origin header exists, it must match exactly
+  if (origin && origin !== APP_URL) {
     throw new Error("ORIGIN_NOT_ALLOWED");
   }
 
-  // If Referer exists, it must start with your domain
+  // If Referer header exists, it must start with your domain
   if (referer && !referer.startsWith(APP_URL)) {
     throw new Error("REFERER_NOT_ALLOWED");
   }
 }
 
+/**
+ * Lightweight API token gate to prevent public quota abuse
+ * Client must send: x-app-token
+ */
 export function assertAppToken(req: Request) {
   const token = req.headers.get("x-app-token");
   if (!token) {
