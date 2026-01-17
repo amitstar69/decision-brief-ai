@@ -14,7 +14,7 @@
       setIsSubmitting(true);
 
       try {
-        const response = await fetch('https://formspree.io/f/xanyrddo', {
+        const response = await fetch('https://formspree.io/f/mgooodoz', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
