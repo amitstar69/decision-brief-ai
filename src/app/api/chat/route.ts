@@ -17,12 +17,12 @@ export async function POST(req: NextRequest) {
     assertAllowedOrigin(req);
 
     // 2) Durable rate limit: 10 briefs per day
-    await rateLimitOrThrow({
-      req,
-      keyPrefix: "chat",
-      limit: 10,
-      windowSeconds: 60 * 60 * 24, // 24 hours
-    });
+    //await rateLimitOrThrow({
+      //req,
+      //keyPrefix: "chat",
+      //limit: 10,
+      //windowSeconds: 60 * 60 * 24, // 24 hours
+    //});
 
     // 3) Parse + validate input
     const { content: rawContent, lens = "Product" } = await req.json();
