@@ -179,7 +179,6 @@
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'x-app-token': process.env.NEXT_PUBLIC_APP_TOKEN as string,
   },
   body: JSON.stringify({ content: trimmed, lens }),
 });
