@@ -211,16 +211,18 @@
 
       try {
         const res = await fetch('/api/followup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            notes: content,
-            summary: brief,
-            question,
-            history: qa,
-          }),
-        });
-
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-app-token': process.env.NEXT_PUBLIC_APP_TOKEN as string,
+  },
+  body: JSON.stringify({
+    notes: content,
+    summary: brief,
+    question,
+    history: qa,
+  }),
+});
         const data = await res.json().catch(() => null);
 
         if (data?.error) {
