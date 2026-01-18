@@ -21,8 +21,8 @@ import Link from 'next/link';
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
           <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6 text-balance">
-            Turn 2-Hour Meetings Into
-            <span className="text-blue-600"> 1-Page Decision Docs</span>
+            Turn Messy Inputs 
+            <span className="text-blue-600"> Into Clear Decisions</span>
           </h1>
           <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto text-balance">
             Decision compression engine for product leaders. Paste your meeting transcript, PRD, or strategy memo and get clear decisions, tradeoffs, and next actions in 30
