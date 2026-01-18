@@ -589,7 +589,7 @@
                           {entry.role === 'user' ? '👤' : '🤖'}
                         </div>
                         <span className="text-sm font-semibold text-slate-900">
-                          {entry.role === 'user' ? 'You' : 'AI Assistant'}
+                          {entry.role === 'user' ? 'You' : 'Decision Analyst'}
                         </span>
                       </div>
                       <p className="text-sm text-slate-700 leading-relaxed">
