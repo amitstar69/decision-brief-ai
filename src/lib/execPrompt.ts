@@ -48,7 +48,8 @@ export type ExecLens = 'Product' | 'Revenue' | 'Ops' | 'Customer' | 'Risk';
   OPTIONS CONSIDERED
   • List 2-4 concrete options discussed
   • Include the "do nothing" option if relevant
-  • Number each option clearly (Option 1, Option 2, etc.)
+  • Use explicit labels: "Option 1:", "Option 2:", etc. as plain text
+  • Do NOT use numbered lists (e.g., 1., 2., 3.)
   • Brief description of each (1-2 sentences)
 
   TRADEOFFS
