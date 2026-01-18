@@ -72,6 +72,7 @@ export type ExecLens = 'Product' | 'Revenue' | 'Ops' | 'Customer' | 'Risk';
   • Specify decision deadline if stated
   • Note if decision requires multiple approvers
   • If unclear from source, state: "Not specified - recommend clarifying ownership"
+  • Do not leave this section empty
 
   RISKS & WATCHOUTS
   • List 3-5 key risks if this decision goes forward
@@ -99,6 +100,9 @@ export type ExecLens = 'Product' | 'Revenue' | 'Ops' | 'Customer' | 'Risk';
   6. **PLAIN TEXT ONLY**: No markdown symbols (#, **, -, etc.)
   7. **BE CONCISE**: Each section should be scannable in 30 seconds
   8. **EXACT HEADINGS**: Use the section titles verbatim as shown above
+  9. **NO DUPLICATE SECTIONS**: Each section heading must appear exactly once. Never repeat a section heading. If information is missing, state that within the section instead of repeating it.
+  10. **NO EMPTY SECTIONS**: Every required section must contain content. If information is missing, state that explicitly within the section.
+
 
   ====================
   HANDLING EDGE CASES
