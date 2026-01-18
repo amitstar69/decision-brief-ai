@@ -1,10 +1,11 @@
-import { Redis } from "@upstash/redis";                                                                                                           
-  import crypto from "crypto";                                                                                                                      
+import crypto from "crypto";                                                                                                                      
                                                                                                                                                     
-  const redis = new Redis({                                                                                                                         
-    url: process.env.UPSTASH_REDIS_REST_URL!,                                                                                                       
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,                                                                                                   
-  });                                                                                                                                               
+  interface RateLimitRecord {                                                                                                                       
+    count: number;                                                                                                                                  
+    resetTime: number;                                                                                                                              
+  }                                                                                                                                                 
+                                                                                                                                                    
+  const rateLimitMap = new Map<string, RateLimitRecord>();                                                                                          
                                                                                                                                                     
   /**                                                                                                                                               
    * Hash identifiers so we never store raw IPs.                                                                                                    
@@ -15,7 +16,6 @@ import { Redis } from "@upstash/redis";
                                                                                                                                                     
   /**                                                                                                                                               
    * Derive a stable client identifier.                                                                                                             
-   * Prefer Vercel-provided headers. Fall back to forwarded headers.                                                                                
    */                                                                                                                                               
   function getClientId(req: Request): string {                                                                                                      
     const forwarded =                                                                                                                               
@@ -24,13 +24,12 @@ import { Redis } from "@upstash/redis";
       req.headers.get("x-real-ip") ||                                                                                                               
       "unknown";                                                                                                                                    
                                                                                                                                                     
-    // x-forwarded-for can be CSV                                                                                                                   
     const ip = forwarded.split(",")[0].trim();                                                                                                      
     return hash(ip);                                                                                                                                
   }                                                                                                                                                 
                                                                                                                                                     
   /**                                                                                                                                               
-   * Sliding-window rate limiter using a Redis sorted set.                                                                                          
+   * Simple in-memory rate limiter (resets on serverless cold start).                                                                               
    */                                                                                                                                               
   export async function rateLimitOrThrow(opts: {                                                                                                    
     req: Request;                                                                                                                                   
@@ -38,28 +37,37 @@ import { Redis } from "@upstash/redis";
     limit: number;                                                                                                                                  
     windowSeconds: number;                                                                                                                          
   }) {                                                                                                                                              
-    const { req, keyPrefix, limit, windowSeconds } = opts;                                                                                          
+    const { req, limit, windowSeconds } = opts;                                                                                                     
     const clientId = getClientId(req);                                                                                                              
-                                                                                                                                                    
-    const key = `${keyPrefix}:${clientId}`;                                                                                                         
     const now = Date.now();                                                                                                                         
-    const windowStart = now - windowSeconds * 1000;                                                                                                 
+    const windowMs = windowSeconds * 1000;                                                                                                          
                                                                                                                                                     
-    const pipeline = redis.pipeline();                                                                                                              
-    pipeline.zremrangebyscore(key, 0, windowStart);                                                                                                 
-    pipeline.zadd(key, { score: now, member: String(now) });                                                                                        
-    pipeline.zcard(key);                                                                                                                            
-    pipeline.expire(key, windowSeconds);                                                                                                            
+    const record = rateLimitMap.get(clientId);                                                                                                      
                                                                                                                                                     
-    const [, , count] = (await pipeline.exec()) as unknown as [                                                                                     
-      unknown,                                                                                                                                      
-      unknown,                                                                                                                                      
-      number                                                                                                                                        
-    ];                                                                                                                                              
+    // No record or expired - create new                                                                                                            
+    if (!record || now > record.resetTime) {                                                                                                        
+      const resetTime = now + windowMs;                                                                                                             
+      rateLimitMap.set(clientId, { count: 1, resetTime });                                                                                          
+      return; // Allowed                                                                                                                            
+    }                                                                                                                                               
                                                                                                                                                     
-    if (count > limit) {                                                                                                                            
+    // Check limit                                                                                                                                  
+    if (record.count >= limit) {                                                                                                                    
       const err = new Error("RATE_LIMITED");                                                                                                        
       (err as any).status = 429;                                                                                                                    
       throw err;                                                                                                                                    
     }                                                                                                                                               
-  }                            
+                                                                                                                                                    
+    // Increment count                                                                                                                              
+    record.count++;                                                                                                                                 
+  }                                                                                                                                                 
+                                                                                                                                                    
+  // Cleanup old entries every hour                                                                                                                 
+  setInterval(() => {                                                                                                                               
+    const now = Date.now();                                                                                                                         
+    for (const [key, record] of rateLimitMap.entries()) {                                                                                           
+      if (now > record.resetTime) {                                                                                                                 
+        rateLimitMap.delete(key);                                                                                                                   
+      }                                                                                                                                             
+    }                                                                                                                                               
+  }, 3600000);   
