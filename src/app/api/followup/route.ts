@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
   try {
     // 1) Security gates
     assertAllowedOrigin(req);
-    assertAppToken(req);
 
     // 2) Durable rate limit (same daily limit)
     await rateLimitOrThrow({
